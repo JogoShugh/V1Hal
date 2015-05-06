@@ -10,6 +10,13 @@ app.use(bodyParser.text({
 }));
 app.use(cors());
 
+function getBaseUrl(url) {
+  var match = url.match('(https?:\/\/.*?)\/.*', 'i');
+  // TODO: clean up
+  if (match !== null) return match[1];
+  return '';
+}
+
 function getUrl(url) {
   //remove the initial slash    
   url = url.substr(1);
@@ -34,6 +41,12 @@ function getHeaders(headers) {
   return result;
 }
 
+function href(req, path) {
+  var protocol = req.protocol;
+  var host = req.get('host');
+  return protocol + "://" + host + path;
+}
+
 function addHeaders(response, headers) {
   for (h in headers) {
     response.setHeader(h, headers[h]);
@@ -51,6 +64,7 @@ function responseError(response, msg) {
 app.get('*', function(req, res, next) {
   try {
     var url = getUrl(req.url);
+    var baseUrl = href(req, '/' + getBaseUrl(url));
     var options = {
       url: url,
       method: 'GET',
@@ -61,7 +75,7 @@ app.get('*', function(req, res, next) {
       if (error) throw error.message;
       addHeaders(res, getHeaders(response.headers));
       body = JSON.parse(body);
-      body = v1hal.assetJson2CleanJson('https://www14.v1host.com', body);
+      body = v1hal.assetJson2CleanJson(baseUrl, body);
       body = JSON.stringify(body);
       res.set('Content-Type', 'application/hal+json');
       res.status(200).send(body);
