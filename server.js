@@ -58,7 +58,7 @@ function responseError(response, msg) {
   var error = {
     error: msg
   };
-  response.end(JSON.stringify(error));
+  response.status(400).send(JSON.stringify(error));
 }
 
 app.get('*', function(req, res, next) {
@@ -85,19 +85,30 @@ app.get('*', function(req, res, next) {
   }
 });
 
-app.post('*', function(req, res, next) {
+app.post('*', bodyParser.json(), function(req, res, next) {
   try {
+    var obj = req.body;
+    var body = v1hal.json2AssetXml(obj);
+
+    var url = getUrl(req.url);
+    var baseUrl = href(req, '/' + getBaseUrl(url));
+
     var options = {
-      url: getUrl(req.url),
+      url: url,
       method: 'POST',
-      body: req.body,
+      body: body,
       headers: getHeaders(req.headers)
     };
+
+    // Important to reset these before sending to V1:
+    options.headers['Content-Type'] = 'application/xml';
+    options.headers['Content-Length'] = body.length;
 
     request(options, function(error, response, body) {
       if (error) throw error.message;
       addHeaders(res, getHeaders(response.headers));
-      body = v1hal.json2AssetXml(body);
+      body = JSON.parse(body);
+      body = v1hal.assetJson2CleanJson(baseUrl, body);
       body = JSON.stringify(body);
       res.set('Content-Type', 'application/hal+json');
       res.status(200).send(body);
