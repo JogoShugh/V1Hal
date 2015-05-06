@@ -1,0 +1,13 @@
+{
+  "name": "V1Hal",
+  "description": "Simple VersionOne REST API to HAL Proxy",
+  "repository": "https://github.com/jogoshugh/V1Hal",
+  "keywords": [
+    "node",
+    "cors",
+    "proxy",
+    "VersionOne",
+    "REST",
+    "HAL"
+  ]
+}
